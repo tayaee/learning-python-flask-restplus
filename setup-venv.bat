@@ -1,0 +1,66 @@
+@echo off
+setlocal enabledelayedexpansion
+
+if exist setenv.bat (
+    call setenv.bat > NUL 2>&1
+    echo %~nx0 line 6 DEBUG setenv.bat: FINDSTR_REGEX_FOR_PATH=!FINDSTR_REGEX_FOR_PATH!
+    echo %~nx0 line 7 DEBUG setenv.bat: PATH_TO_BASE_PYTHON=!PATH_TO_BASE_PYTHON!
+    echo "%PATH%" | findstr /r "!FINDSTR_REGEX_FOR_PATH!" > NUL 2>&1 || set "PATH=!PATH_TO_BASE_PYTHON!;%PATH%"
+)
+
+python -V 2>NUL | findstr /i /c:"Python 3" > NUL && (
+    echo %~nx0 line 11 DEBUG Found base Python 3.x
+) || (
+    echo %~nx0 line 13 ERROR Python 3 is not available in PATH, exit.
+    goto :eof
+)
+
+if .%1. == .. (
+    if exist setenv.bat (
+        call setenv.bat > NUL 2>&1
+        echo %~nx0 line 20 DEBUG setenv.bat: APPNAME=!APPNAME!
+    ) else (
+        for %%a in ("%CD%") do set APPNAME=%%~nxa
+    )
+    for /f "usebackq tokens=1-2" %%a in (`python -V`) do set PYTHON_VER=%%b
+    echo %~nx0 line 25 DEBUG Checking venv with !PYTHON_VER!
+    set VENV_DIR=%userprofile%\.venv\!PYTHON_VER!.!APPNAME!
+) else (
+    set VENV_DIR=%1
+)
+if exist !VENV_DIR! (
+    echo %~nx0 line 31 DEBUG Found !VENV_DIR!
+    if exist !VENV_DIR!\Scripts\activate.bat (
+        echo %~nx0 line 33 DEBUG Found !VENV_DIR!\Scripts\activate.bat
+        call !VENV_DIR!\Scripts\activate.bat
+    )
+) else (
+    echo %~nx0 line 37 DEBUG Creating !VENV_DIR!
+    echo %~nx0 line 38 DEBUG python -m venv !VENV_DIR!
+    python -m venv !VENV_DIR! && (
+        echo %~nx0 line 40 DEBUG Created !VENV_DIR!
+        if exist !VENV_DIR!\Scripts\activate.bat (
+            echo %~nx0 line 42 DEBUG Found !VENV_DIR!\Scripts\activate.bat
+            call !VENV_DIR!\Scripts\activate.bat
+        )
+        echo %~nx0 line 45 DEBUG python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+        python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+    ) || (
+        echo %~nx0 line 48 ERROR python -m venv !VENV_DIR!
+        exit /b 1
+    )
+)
+
+if exist requirements.txt (
+    echo %~nx0 line 54 DEBUG Found requirements.txt
+    echo %~nx0 line 55 DEBUG Checking installed packages...
+    python -c "import pkg_resources; pkg_resources.require(open('requirements.txt', mode='r'))" > NUL 2>&1 && (
+        echo %~nx0 line 57 DEBUG requirements.txt OK
+    ) || (
+        echo %~nx0 line 59 DEBUG pip install --ignore-installed -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
+        pip install --ignore-installed -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
+    )
+)
+
+echo %~nx0 line 64 DEBUG Python is ready.
+endlocal & call %VENV_DIR%\Scripts\activate.bat
