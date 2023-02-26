@@ -9,7 +9,7 @@ class Config:
     DEBUG = False
 
 
-class DevConfig(Config):
+class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'main.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -21,14 +21,14 @@ class TestingConfig(Config):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
-class ProdConfig(Config):
+class ProductionConfig(Config):
     DEBUG = False
     # SQLALCHEMY_DATABASE_URI = mysql_local_base
 
 
 config_by_name = dict(
-    dev=DevConfig,
-    testing=TestingConfig,
-    prod=ProdConfig
+    dev=DevelopmentConfig,
+    test=TestingConfig,
+    prod=ProductionConfig
 )
 key = Config.SECRET_KEY

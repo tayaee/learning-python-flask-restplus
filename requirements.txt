@@ -1,6 +1,6 @@
 flask
 flask-bcrypt
-flask-migrate
+Flask-Migrate
 flask-restplus
 flask-script
 flask_testing
