@@ -1,6 +1,6 @@
 import os
 
-mysql_local_base = os.environ['DATABASE_URL']
+# mysql_local_base = os.environ['DATABASE_URL']
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -23,7 +23,7 @@ class TestingConfig(Config):
 
 class ProdConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = mysql_local_base
+    # SQLALCHEMY_DATABASE_URI = mysql_local_base
 
 
 config_by_name = dict(
